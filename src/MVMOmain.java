@@ -103,6 +103,26 @@ public class MVMOmain {
 			}
 			
 			Xn=norm.Normalize(X, xylim);	// Normalization of the variables between 0 and 1
+
+			// restoration of the individuals into the archives
+			// archive exists for every individual
+			Archive[] arc = new Archive[pop];
+			Archive.DevArc(an);
+			for(int i=0; i<arc.length; i++){
+				arc[i] = new Archive();
+				arc[i].fitness[0] = F[i];
+				arc[i].variable[0][0] = Xn[i][0];
+				arc[i].variable[0][1] = Xn[i][1];
+				arc[i].mean[0][0] = Xn[i][0];
+				arc[i].mean[0][1] = Xn[i][1];
+				arc[i].variance[0][0] = 0;
+				arc[i].variance[0][1] = 0;
+			}
+			
+			for(int i=1; i<pop; i++) {
+				System.out.printf("%f\t",arc[i].variable[0][0]);
+				System.out.printf("%f\n",arc[i].variable[0][1]);
+			}
 			
 /*			
 			/////////////////////////////
