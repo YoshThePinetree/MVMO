@@ -2,6 +2,8 @@
 import java.io.FileWriter;
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.io.IOException;
 
 public class MVMOmain {
@@ -57,15 +59,15 @@ public class MVMOmain {
 		double[][] X2rec = new double [ite][trial];
 		Sfmt rnd = new Sfmt(rseed);
 		NormVars norm = new NormVars();
+		
+		double gp;
+		int GP;
 
 		for(int l=0;l<trial;l++){
 			
 			double[][] X = new double[pop][2];	// the decision variable matrix
 			double[][] Xn = new double[pop][2];	// the NORMALIZED decision variable matrix
-			double[][] V = new double[pop][2];	// the variance matrix
 			double[] F = new double[pop];		// the objective function for the personal best
-			double[] Fpb = new double[pop];		// the current objective function
-			double[][] Pb = new double[pop][2];		// the personal best vector
 			double[] Gb = new double[2];		// the global best vector
 			double[] xylim=ObjFunc.GetLimit(fnum);
 			
@@ -81,26 +83,18 @@ public class MVMOmain {
 					if(j==1) {
 						X[i][j]=rnd.NextUnif()*(Math.abs(xylim[2])+Math.abs(xylim[3]))-Math.abs(xylim[2]);
 					}
-					V[i][j]=rnd.NextUnif();
-//					System.out.printf("%f\t",X[i][j]);
-//					if(j==1) {
-//						System.out.printf("\n");
-//					}
 				}
 				F[i]=ObjFunc.EvalFunc(X[i][0], X[i][1], fnum);	// variable evaluation
-//				System.out.printf("%f\n",F[i]);
+				System.out.println(F[i]);
 				if(minfnc>F[i]) {
 					minfnc=F[i];
 					minind=i;
+					for(int j=0; j<2; j++) {
+						Gb[j]=X[minind][j];
+					}
 				}
 			}
-	
-			Pb=X;
-			Fpb=F;
-			for(int j=0; j<2; j++) {
-				Gb[j]=X[minind][j];
-//				System.out.printf("%f\n",Gb[j]);
-			}
+			
 			
 			Xn=norm.Normalize(X, xylim);	// Normalization of the variables between 0 and 1
 
@@ -117,21 +111,29 @@ public class MVMOmain {
 				arc[i].mean[0][1] = Xn[i][1];
 				arc[i].variance[0][0] = 0;
 				arc[i].variance[0][1] = 0;
+				arc[i].shape[0][0] = 0;
+				arc[i].shape[0][1] = 0;
 			}
 			
-			for(int i=1; i<pop; i++) {
-				System.out.printf("%f\t",arc[i].variable[0][0]);
-				System.out.printf("%f\n",arc[i].variable[0][1]);
-			}
-			
-/*			
 			/////////////////////////////
 			//  MVMO solution search   //
 			/////////////////////////////
+			IndexSort Isort = new IndexSort();
+			Integer [] anum = new Integer[an];
+			anum=Isort.Ind(F);
+			System.out.println(Arrays.toString(anum));
+			
+//			System.out.println(F[anum[1]]);	// refer by this manner
 			
 			for(int k=0; k<ite; k++) {
-				System.out.printf("Iteration %d\n",k+1);
-				// the position update
+//				System.out.printf("Iteration %d\n",k+1);
+				gp=gpi + ((k+1)*(gpf-gpi)) / (ite);
+		        GP=(int) Math.round(pop*gp);                   // A number of the Good Particles
+
+		        
+		        
+		        /*
+		        // the position update
 				double[][] X1 = new double[pop][2];	// the particle position matrix
 				double[][] V1 = new double[pop][2];	// the particle velocity matrix
 				double r1, r2;
@@ -179,9 +181,11 @@ public class MVMOmain {
 				Frec[k][l]=minfnc;
 				X1rec[k][l]=Gb[0];
 				X2rec[k][l]=Gb[1];
+			
+*/
 			}
-		*/	
-		}
+		}		
+		        
 		/*
 		// write out the objective function value & search log
 		String pathname = "C:\\result\\MVMO\\";
@@ -196,5 +200,6 @@ public class MVMOmain {
 		System.out.println(pathname + "test" + sufi); 
 		*/
 	}
+
 }
 
