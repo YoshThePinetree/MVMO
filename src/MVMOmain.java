@@ -23,7 +23,7 @@ public class MVMOmain {
 			
 		int fnum=2;			// the function number to solve
 		int trial=1;		// the number of trials with different random initial
-		int ite=1000;		// the number of iterations for a trial
+		int ite=1;		// the number of iterations for a trial
 		int pop=100;		// the number of particles
 		int rseed=1;		// random seed: MT method			
 		int an=50;			// the archive size
@@ -85,7 +85,7 @@ public class MVMOmain {
 					}
 				}
 				F[i]=ObjFunc.EvalFunc(X[i][0], X[i][1], fnum);	// variable evaluation
-				System.out.println(F[i]);
+//				System.out.println(F[i]);
 				if(minfnc>F[i]) {
 					minfnc=F[i];
 					minind=i;
@@ -98,6 +98,7 @@ public class MVMOmain {
 			
 			Xn=norm.Normalize(X, xylim);	// Normalization of the variables between 0 and 1
 
+			
 			// restoration of the individuals into the archives
 			// archive exists for every individual
 			Archive[] arc = new Archive[pop];
@@ -109,10 +110,10 @@ public class MVMOmain {
 				arc[i].variable[0][1] = Xn[i][1];
 				arc[i].mean[0][0] = Xn[i][0];
 				arc[i].mean[0][1] = Xn[i][1];
-				arc[i].variance[0][0] = 0;
-				arc[i].variance[0][1] = 0;
-				arc[i].shape[0][0] = 0;
-				arc[i].shape[0][1] = 0;
+				arc[i].variance[0][0] = 1;
+				arc[i].variance[0][1] = 1;
+				arc[i].shape[0][0] = (-1) * Math.log(arc[i].variance[0][0]) * sf;
+				arc[i].shape[0][1] = (-1) * Math.log(arc[i].variance[0][1]) * sf;
 			}
 			
 			/////////////////////////////
@@ -121,15 +122,74 @@ public class MVMOmain {
 			IndexSort Isort = new IndexSort();
 			Integer [] anum = new Integer[an];
 			anum=Isort.Ind(F);
-			System.out.println(Arrays.toString(anum));
+//			System.out.println(Arrays.toString(anum));
 			
 //			System.out.println(F[anum[1]]);	// refer by this manner
 			
-			for(int k=0; k<ite; k++) {
+			for(int k=0; k<ite; k++) {		// MVMO loop start
 //				System.out.printf("Iteration %d\n",k+1);
 				gp=gpi + ((k+1)*(gpf-gpi)) / (ite);
 		        GP=(int) Math.round(pop*gp);                   // A number of the Good Particles
-
+		        int[] q = new int [GP];
+		        for (int i=0; i<GP; i++) {
+	        		q[i]=rnd.NextInt(GP);	// random index for choosing parents
+		        }	        
+		        
+		        ////////////////////////////////////////////////
+		        // Crossover in good and bad population group //
+		        ////////////////////////////////////////////////
+		        double[][] Xp = new double [pop][2];
+		        double[][] Xo = new double [pop][2];
+		        double[][] Xm = new double [pop][2];
+		        double[][] Xs1 = new double [pop][2];
+		        double[][] Xs2 = new double [pop][2];
+		        
+		        for(int i=0; i<GP; i++) {	// loop for the GOOD solution
+	        		for(int j=0; j<2; j++){
+	        			Xp[i][j] = arc[anum[i]].variable[0][j];
+	        			Xm[i][j] = arc[anum[q[i]]].mean[0][j];
+	        			if(Xp[i][j]<Xm[i][j]){
+	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]);
+	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        			}
+	        			else{
+	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]);	        				
+	        			}
+	        			
+	        		}
+		        }
+		        for(int i=GP; i<pop; i++) {	// loop for the BAD solution: Multi-parent crossover
+		        	for(int j=0; j<2; j++){
+		        		int stop = 1;
+		        		double beta = 0, l1= -1;
+		        		while(stop==1) {
+		        			beta = 2 * (rnd.NextUnif() - (0.5*(1-Math.pow((k+1)/ite,2))));
+		        			l1 = Xp[q[rnd.NextInt(GP)]][j] + (beta * Xp[0][j] - Xp[GP-1][j]); 
+		        			
+		        			if(l1>=0 && l1<=1) {
+		        			 break;	
+		        			}
+		        		}
+		        		Xp[i][j]=l1;
+		        		
+		        		if(Xp[i][j]<Xm[i][j]){
+	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]);
+	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        			}
+	        			else{
+	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]);	        				
+	        			}
+		        		Xm[i][j]=Xp[i][j];
+		        		
+		        	}
+		        }
+		        Xo=Xp;	// parents to offsprings
+		        
+		        ///////////////////////////////////// END OF CROSSOVER
+		        
+		        
 		        
 		        
 		        /*
