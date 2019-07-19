@@ -23,7 +23,7 @@ public class MVMOmain {
 			
 		int fnum=2;			// the function number to solve
 		int trial=1;		// the number of trials with different random initial
-		int ite=1;		// the number of iterations for a trial
+		int ite=1000;		// the number of iterations for a trial
 		int pop=100;		// the number of particles
 		int rseed=1;		// random seed: MT method			
 		int an=50;			// the archive size
@@ -62,6 +62,7 @@ public class MVMOmain {
 		
 		double gp;
 		int GP;
+		int mn1, mn;
 
 		for(int l=0;l<trial;l++){
 			
@@ -189,9 +190,41 @@ public class MVMOmain {
 		        
 		        ///////////////////////////////////// END OF CROSSOVER
 		        
+		        ///////////////////////////////////
+		        // Mutation via mapping function //
+		        ///////////////////////////////////
 		        
-		        
-		        
+		        mn1=(int) Math.round((mi) - (((k+1)*(mi-mf))/ite));
+	        	mn=(int) Math.round(mf + (rnd.NextUnif()*(mf+mn1-mf)));		// The number of mutated particles
+	        	
+	        	// nonlinear functions
+	        	double hx = 0;
+	        	double h0 = 0;
+	        	double h1 = 0;
+	        	
+	        	for(int i=0; i<mn; i++) {		// loop for the mutation
+	        		int r1 = rnd.NextInt(pop);
+	        		double q1 = rnd.NextUnif();
+        			for(int j=0; j<2; j++) {
+        				hx = (Xm[r1][j]*(1-Math.exp((-1)*q1*Xs1[r1][j]))) + ((1-Xm[r1][j])*Math.exp((-1)*(1-q1)*Xs2[r1][j]));
+        				h0 = ((1-Xm[r1][j])*Math.exp((-1)*Xs2[r1][j]));
+        				h1 = (Xm[r1][j]*(1-Math.exp((-1)*Xs1[r1][j]))) + (1-Xm[r1][j]);
+        				Xo[r1][j] = Math.abs(hx + ((1-h1+h0)*q1) - h0 );
+            			if(Xo[r1][j]>1) {
+            				Xo[r1][j]=1;
+            			}else if(Xo[r1][j]<0){
+            				Xo[r1][j]=0;
+            			}
+        			}
+	        	}
+	        	
+	        	// rounding the normalized variable
+	        	
+	        	
+	        	
+	        	
+        		///////////////////////////////////// END OF MUTATION
+	        	
 		        /*
 		        // the position update
 				double[][] X1 = new double[pop][2];	// the particle position matrix
