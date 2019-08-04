@@ -1,10 +1,4 @@
 // Main function
-import java.io.FileWriter;
-import java.io.BufferedWriter;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.io.IOException;
 
 public class MVMOmain {
 	public static void main (String arg[]) {
@@ -21,8 +15,8 @@ public class MVMOmain {
 		// 4:Simionescu function, f(+-0.84852813,-+0.84852813)=-0.072
 		// 5:2-D Rastrigin function, f(0,0)=0
 			
-		int fnum=2;			// the function number to solve
-		int trial=1;		// the number of trials with different random initial
+		int fnum=5;			// the function number to solve
+		int trial=5;		// the number of trials with different random initial
 		int ite=1000;		// the number of iterations for a trial
 		int pop=100;		// the number of particles
 		int rseed=1;		// random seed: MT method			
@@ -44,7 +38,6 @@ public class MVMOmain {
 		System.out.printf("an\tgpi\tgpf\tsf\taf\tmi\tmf\n");
 		System.out.printf("%d\t%.2f\t%.2f\t%.2f\t%.2f\t%d\t%d\n",an,gpi,gpf,sf,af,mi,mf);
 		
-		ObjFunc ObjFuncObject = new ObjFunc();
 		System.out.printf("Function:\n");
 		ObjFunc.FuncName(fnum);
 		
@@ -96,10 +89,8 @@ public class MVMOmain {
 				}
 			}
 			
-			
 			Xn=norm.Normalize(X, xylim);	// Normalization of the variables between 0 and 1
 
-			
 			// restoration of the individuals into the archives
 			// archive exists for every individual
 			Archive[] arc = new Archive[pop];
@@ -109,12 +100,12 @@ public class MVMOmain {
 				arc[i].fitness[0] = F[i];
 				arc[i].variable[0][0] = Xn[i][0];
 				arc[i].variable[0][1] = Xn[i][1];
-				arc[i].mean[0][0] = Xn[i][0];
-				arc[i].mean[0][1] = Xn[i][1];
-				arc[i].variance[0][0] = 1;
-				arc[i].variance[0][1] = 1;
-				arc[i].shape[0][0] = (-1) * Math.log(arc[i].variance[0][0]) * sf;
-				arc[i].shape[0][1] = (-1) * Math.log(arc[i].variance[0][1]) * sf;
+				arc[i].mean[0] = Xn[i][0];
+				arc[i].mean[1] = Xn[i][1];
+				arc[i].variance[0] = 1;
+				arc[i].variance[1] = 1;
+				arc[i].shape[0] = (-1) * Math.log(arc[i].variance[0]) * sf;
+				arc[i].shape[1] = (-1) * Math.log(arc[i].variance[1]) * sf;
 			}
 			
 			/////////////////////////////
@@ -148,14 +139,14 @@ public class MVMOmain {
 		        for(int i=0; i<GP; i++) {	// loop for the GOOD solution
 	        		for(int j=0; j<2; j++){
 	        			Xp[i][j] = arc[anum[i]].variable[0][j];
-	        			Xm[i][j] = arc[anum[q[i]]].mean[0][j];
+	        			Xm[i][j] = arc[anum[q[i]]].mean[j];
 	        			if(Xp[i][j]<Xm[i][j]){
-	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]);
-	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        				Xs1[i][j] = (arc[anum[i]].shape[j]);
+	        				Xs2[i][j] = (arc[anum[i]].shape[j]) * af;
 	        			}
 	        			else{
-	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]) * af;
-	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]);	        				
+	        				Xs1[i][j] = (arc[anum[i]].shape[j]) * af;
+	        				Xs2[i][j] = (arc[anum[i]].shape[j]);	        				
 	        			}
 	        			
 	        		}
@@ -175,12 +166,12 @@ public class MVMOmain {
 		        		Xp[i][j]=l1;
 		        		
 		        		if(Xp[i][j]<Xm[i][j]){
-	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]);
-	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]) * af;
+	        				Xs1[i][j] = (arc[anum[i]].shape[j]);
+	        				Xs2[i][j] = (arc[anum[i]].shape[j]) * af;
 	        			}
 	        			else{
-	        				Xs1[i][j] = (arc[anum[i]].shape[0][j]) * af;
-	        				Xs2[i][j] = (arc[anum[i]].shape[0][j]);	        				
+	        				Xs1[i][j] = (arc[anum[i]].shape[j]) * af;
+	        				Xs2[i][j] = (arc[anum[i]].shape[j]);	        				
 	        			}
 		        		Xm[i][j]=Xp[i][j];
 		        		
@@ -210,6 +201,7 @@ public class MVMOmain {
         				h0 = ((1-Xm[r1][j])*Math.exp((-1)*Xs2[r1][j]));
         				h1 = (Xm[r1][j]*(1-Math.exp((-1)*Xs1[r1][j]))) + (1-Xm[r1][j]);
         				Xo[r1][j] = Math.abs(hx + ((1-h1+h0)*q1) - h0 );
+        				// rounding the normalized variable
             			if(Xo[r1][j]>1) {
             				Xo[r1][j]=1;
             			}else if(Xo[r1][j]<0){
@@ -217,69 +209,99 @@ public class MVMOmain {
             			}
         			}
 	        	}
+	    
+	        	///////////////////////////////////// END OF MUTATION
 	        	
-	        	// rounding the normalized variable
+		        ///////////////////////////
+		        // Individual Evaluation //
+		        ///////////////////////////
 	        	
+	        	X=norm.DeNormalize(Xo, xylim);	// De-Normalization of the variables
 	        	
-	        	
-	        	
-        		///////////////////////////////////// END OF MUTATION
-	        	
-		        /*
-		        // the position update
-				double[][] X1 = new double[pop][2];	// the particle position matrix
-				double[][] V1 = new double[pop][2];	// the particle velocity matrix
-				double r1, r2;
-				
-				for(int i=0;i<pop;i++) {
-					for(int j=0;j<2;j++) {
-						X1[i][j]=X[i][j] + V[i][j];	// position update
-						//System.out.printf("%f\t",X1[i][j]);
-						//if(j==1) {
-						//	System.out.printf("\n");
-						//}
-						r1=rnd.NextUnif();
-						r2=rnd.NextUnif();
-						V1[i][j]=w*V[i][j] + c1*r1*(Pb[i][j]-X[i][j]) + c2*r2*(Gb[j]-X[i][j]);	// velocity update
-						
-						if(V1[i][j]>vlim) {	// velocity limitation
-							V1[i][j]=vlim;
-						}
-					}
-					
-					F[i]=ObjFunc.EvalFunc(X1[i][0], X1[i][1], fnum);	// particle evaluation
-	//				System.out.printf("%f\n",F[i]);
-					
-					if(minfnc>F[i]) {	// the global best update
+	        	for(int i=0;i<pop;i++) {
+					F[i]=ObjFunc.EvalFunc(X[i][0], X[i][1], fnum);	// variable evaluation
+//					System.out.println(F[i]);
+					if(minfnc>F[i]) {
 						minfnc=F[i];
 						minind=i;
-						for(int j=0;j<2;j++) {
-							Gb[j]=X1[i][j];
-						}
-					}
-					if(Fpb[i]>F[i]) {	// the personal best update
-						Fpb[i]=F[i];
-						for(int j=0;j<2;j++) {
-							Pb[i][j]=X1[i][j];
+						for(int j=0; j<2; j++) {
+							Gb[j]=X[minind][j];
 						}
 					}
 				}
+	        	
+	        	Xn=norm.Normalize(X, xylim);	// Normalization of the variables
+	        	
+        		///////////////////////////////////// END OF EVALUATION
+	        	
+				//////////////////////////////////////////////
+	        	// Individual Preservation into the Archive //
+	        	//////////////////////////////////////////////
+	        	StatCalc stat = new StatCalc();
+	        	ArchSort asort = new ArchSort();
+	        	
+	        	// Preservation
+				if(k<an-1) {	// if the archive is not full
+					int len = k+2;
+					for(int i=0; i<pop; i++) {
+	        			arc[anum[i]].fitness[k+1] = F[i];
+	        			
+		        		for(int j=0; j<2; j++){
+		    				arc[anum[i]].variable[k+1][j] = Xn[i][j];
+		    				
+		    		        double[] X1 = new double [len];
+		    		        for(int n=0; n<len; n++){
+		    		        	X1[n] = arc[anum[i]].variable[n][j];
+		    		        }				
+		    				arc[anum[i]].mean[j] = stat.Mean(X1);
+		    				arc[anum[i]].variance[j] = stat.Var(X1);
+		    				arc[anum[i]].shape[j] = (-1) * Math.log(arc[i].variance[j]) * sf;	    				
+		        		}
+					}
 				
-				X=X1;
-				V=V1;
+				}else{		// if the archive is already full : select by sort
+					for(int i=0; i<pop; i++) {	
+						 asort.sort(arc[anum[i]], F[i], Xn[i], an);
+						 
+						 for(int j=0; j<2; j++){	// Statistical amount calculation for new archive
+			    		        double[] X1 = new double [an];
+			    		        for(int n=0; n<an; n++){
+			    		        	X1[n] = arc[anum[i]].variable[n][j];
+			    		        }				
+			    				arc[anum[i]].mean[j] = stat.Mean(X1);
+			    				arc[anum[i]].variance[j] = stat.Var(X1);
+			    				arc[anum[i]].shape[j] = (-1) * Math.log(arc[i].variance[j]) * sf;	    				
+		        		 }
+					}
+				}
 				
-				System.out.printf("The best fitness: \t");
-				System.out.printf("%f\n",minfnc);
+	        	// Archive sort
+				if(k<an-1) {	// if the archive is not full
+					int len = k+1;
+					for(int i=0; i<pop; i++) {	
+	 					 asort.sort(arc[anum[i]], F[i], Xn[i], len);
+					}
+				}
+	        	
+				double [] F1 = new double [pop];
+				for(int i=0; i<pop; i++){	
+					F1[i] = arc[i].fitness[0];
+				}
+				anum=Isort.Ind(F1);		// new sorted number
 				
-				Frec[k][l]=minfnc;
-				X1rec[k][l]=Gb[0];
-				X2rec[k][l]=Gb[1];
-			
-*/
+				Frec[k][l]=F1[anum[0]];
+				X1rec[k][l]=arc[anum[0]].variable[0][0];
+				X2rec[k][l]=arc[anum[0]].variable[0][1];
+				
+				System.out.printf("Iteration number:\t");
+				System.out.printf("%d-",k+1);
+				System.out.println(l+1);
+				System.out.printf("The best fitness:\t");
+				System.out.println(F1[anum[0]]);
 			}
 		}		
 		        
-		/*
+		
 		// write out the objective function value & search log
 		String pathname = "C:\\result\\MVMO\\";
 		String sufi= ".csv";
@@ -291,7 +313,7 @@ public class MVMOmain {
 		WriteResult.Output(X2rec, ite, trial, pathname + fnameX2 + sufi);
 		
 		System.out.println(pathname + "test" + sufi); 
-		*/
+		
 	}
 
 }
