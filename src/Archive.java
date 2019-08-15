@@ -1,14 +1,15 @@
 // constructor class
 public class Archive {
 	  
-	private static int a;
-	public static void DevArc(int b){	
+	private static int a, c;
+	public static void DevArc(int b, int d){	
 	  a=b;
+	  c=d;
 	}
 	
 	double[] fitness = new double[a];   
-	double[][] variable = new double[a][2];   
-	double[] mean = new double[2];
-	double[] variance = new double[2];
-	double[] shape = new double[2];
+	double[][] variable = new double[a][c];   
+	double[] mean = new double[c];
+	double[] variance = new double[c];
+	double[] shape = new double[c];
 }

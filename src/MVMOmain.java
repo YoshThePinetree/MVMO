@@ -13,9 +13,10 @@ public class MVMOmain {
 		// 2:Rosenbrock function constrained to a disk, f(1.0,1.0)=0
 		// 3:Mishra's Bird function - constrained, f(-3.1302468,-1.5821422)=-106.7645367
 		// 4:Simionescu function, f(+-0.84852813,-+0.84852813)=-0.072
-		// 5:2-D Rastrigin function, f(0,0)=0
+		// 5:Rastrigin function, f(0, ..., 0)=0
 			
 		int fnum=5;			// the function number to solve
+		int dim=5;			// the number of dimension of the decision variable
 		int trial=5;		// the number of trials with different random initial
 		int ite=1000;		// the number of iterations for a trial
 		int pop=100;		// the number of particles
@@ -28,9 +29,6 @@ public class MVMOmain {
 		int mi=15;			// the first mutation representatives
 		int mf=6;			// the final mutation representatives
 		
-		int PG[]= {fnum,trial,ite,pop};
-		double PP1[]= {gpi,gpf,sf,af};
-		int PP2[]= {an,mi,mf};
 		
 		System.out.printf("General Parameters:\n");
 		System.out.printf("trial\titeration\tparticles\n");
@@ -41,15 +39,12 @@ public class MVMOmain {
 		System.out.printf("Function:\n");
 		ObjFunc.FuncName(fnum);
 		
-		double ans=ObjFunc.EvalFunc(0, 0, fnum);
-		System.out.printf("%f\n",ans);
-		
 		/////////////////////////////////////////////////
 		// Individual Generation & Initial Evaluation  //
 		/////////////////////////////////////////////////
 		double[][] Frec = new double [ite][trial];
-		double[][] X1rec = new double [ite][trial];
-		double[][] X2rec = new double [ite][trial];
+		double[][][] X1rec = new double [ite][dim][trial];
+		
 		Sfmt rnd = new Sfmt(rseed);
 		NormVars norm = new NormVars();
 		
@@ -59,31 +54,25 @@ public class MVMOmain {
 
 		for(int l=0;l<trial;l++){
 			
-			double[][] X = new double[pop][2];	// the decision variable matrix
-			double[][] Xn = new double[pop][2];	// the NORMALIZED decision variable matrix
+			double[][] X = new double[pop][dim];	// the decision variable matrix
+			double[][] Xn = new double[pop][dim];	// the NORMALIZED decision variable matrix
 			double[] F = new double[pop];		// the objective function for the personal best
-			double[] Gb = new double[2];		// the global best vector
-			double[] xylim=ObjFunc.GetLimit(fnum);
+			double[] Gb = new double[dim];		// the global best vector
+			double[][] xylim=ObjFunc.GetLimit(fnum,dim);
 			
 			double minfnc=1000;
 			int minind=0;
-			// Particle generation for their position and velocity
 			
 			for(int i=0;i<pop;i++) {
-				for(int j=0;j<2;j++) {
-					if(j==0) {
-						X[i][j]=rnd.NextUnif()*(Math.abs(xylim[0])+Math.abs(xylim[1]))-Math.abs(xylim[0]);
-					}
-					if(j==1) {
-						X[i][j]=rnd.NextUnif()*(Math.abs(xylim[2])+Math.abs(xylim[3]))-Math.abs(xylim[2]);
-					}
+				for(int j=0;j<dim;j++) {
+					X[i][j]=rnd.NextUnif()*(Math.abs(xylim[0][j])+Math.abs(xylim[1][j]))-Math.abs(xylim[0][j]);
 				}
-				F[i]=ObjFunc.EvalFunc(X[i][0], X[i][1], fnum);	// variable evaluation
+				F[i]=ObjFunc.EvalFunc(X[i], fnum, dim);	// variable evaluation
 //				System.out.println(F[i]);
 				if(minfnc>F[i]) {
 					minfnc=F[i];
 					minind=i;
-					for(int j=0; j<2; j++) {
+					for(int j=0; j<dim; j++) {
 						Gb[j]=X[minind][j];
 					}
 				}
@@ -94,18 +83,16 @@ public class MVMOmain {
 			// restoration of the individuals into the archives
 			// archive exists for every individual
 			Archive[] arc = new Archive[pop];
-			Archive.DevArc(an);
+			Archive.DevArc(an,dim);
 			for(int i=0; i<arc.length; i++){
 				arc[i] = new Archive();
 				arc[i].fitness[0] = F[i];
-				arc[i].variable[0][0] = Xn[i][0];
-				arc[i].variable[0][1] = Xn[i][1];
-				arc[i].mean[0] = Xn[i][0];
-				arc[i].mean[1] = Xn[i][1];
-				arc[i].variance[0] = 1;
-				arc[i].variance[1] = 1;
-				arc[i].shape[0] = (-1) * Math.log(arc[i].variance[0]) * sf;
-				arc[i].shape[1] = (-1) * Math.log(arc[i].variance[1]) * sf;
+				for(int j=0; j<dim; j++) {
+					arc[i].variable[0][j] = Xn[i][j];
+					arc[i].mean[j] = Xn[i][j];
+					arc[i].variance[j] = 1;
+					arc[i].shape[j] = (-1) * Math.log(arc[i].variance[j]) * sf;
+				}				
 			}
 			
 			/////////////////////////////
@@ -130,14 +117,14 @@ public class MVMOmain {
 		        ////////////////////////////////////////////////
 		        // Crossover in good and bad population group //
 		        ////////////////////////////////////////////////
-		        double[][] Xp = new double [pop][2];
-		        double[][] Xo = new double [pop][2];
-		        double[][] Xm = new double [pop][2];
-		        double[][] Xs1 = new double [pop][2];
-		        double[][] Xs2 = new double [pop][2];
+		        double[][] Xp = new double [pop][dim];
+		        double[][] Xo = new double [pop][dim];
+		        double[][] Xm = new double [pop][dim];
+		        double[][] Xs1 = new double [pop][dim];
+		        double[][] Xs2 = new double [pop][dim];
 		        
 		        for(int i=0; i<GP; i++) {	// loop for the GOOD solution
-	        		for(int j=0; j<2; j++){
+	        		for(int j=0; j<dim; j++){
 	        			Xp[i][j] = arc[anum[i]].variable[0][j];
 	        			Xm[i][j] = arc[anum[q[i]]].mean[j];
 	        			if(Xp[i][j]<Xm[i][j]){
@@ -152,7 +139,7 @@ public class MVMOmain {
 	        		}
 		        }
 		        for(int i=GP; i<pop; i++) {	// loop for the BAD solution: Multi-parent crossover
-		        	for(int j=0; j<2; j++){
+		        	for(int j=0; j<dim; j++){
 		        		int stop = 1;
 		        		double beta = 0, l1= -1;
 		        		while(stop==1) {
@@ -196,7 +183,7 @@ public class MVMOmain {
 	        	for(int i=0; i<mn; i++) {		// loop for the mutation
 	        		int r1 = rnd.NextInt(pop);
 	        		double q1 = rnd.NextUnif();
-        			for(int j=0; j<2; j++) {
+        			for(int j=0; j<dim; j++) {
         				hx = (Xm[r1][j]*(1-Math.exp((-1)*q1*Xs1[r1][j]))) + ((1-Xm[r1][j])*Math.exp((-1)*(1-q1)*Xs2[r1][j]));
         				h0 = ((1-Xm[r1][j])*Math.exp((-1)*Xs2[r1][j]));
         				h1 = (Xm[r1][j]*(1-Math.exp((-1)*Xs1[r1][j]))) + (1-Xm[r1][j]);
@@ -219,12 +206,12 @@ public class MVMOmain {
 	        	X=norm.DeNormalize(Xo, xylim);	// De-Normalization of the variables
 	        	
 	        	for(int i=0;i<pop;i++) {
-					F[i]=ObjFunc.EvalFunc(X[i][0], X[i][1], fnum);	// variable evaluation
+					F[i]=ObjFunc.EvalFunc(X[i], fnum, dim);	// variable evaluation
 //					System.out.println(F[i]);
 					if(minfnc>F[i]) {
 						minfnc=F[i];
 						minind=i;
-						for(int j=0; j<2; j++) {
+						for(int j=0; j<dim; j++) {
 							Gb[j]=X[minind][j];
 						}
 					}
@@ -246,7 +233,7 @@ public class MVMOmain {
 					for(int i=0; i<pop; i++) {
 	        			arc[anum[i]].fitness[k+1] = F[i];
 	        			
-		        		for(int j=0; j<2; j++){
+		        		for(int j=0; j<dim; j++){
 		    				arc[anum[i]].variable[k+1][j] = Xn[i][j];
 		    				
 		    		        double[] X1 = new double [len];
@@ -261,9 +248,9 @@ public class MVMOmain {
 				
 				}else{		// if the archive is already full : select by sort
 					for(int i=0; i<pop; i++) {	
-						 asort.sort(arc[anum[i]], F[i], Xn[i], an);
+						 asort.sort(arc[anum[i]], F[i], Xn[i], an, dim);
 						 
-						 for(int j=0; j<2; j++){	// Statistical amount calculation for new archive
+						 for(int j=0; j<dim; j++){	// Statistical amount calculation for new archive
 			    		        double[] X1 = new double [an];
 			    		        for(int n=0; n<an; n++){
 			    		        	X1[n] = arc[anum[i]].variable[n][j];
@@ -279,7 +266,7 @@ public class MVMOmain {
 				if(k<an-1) {	// if the archive is not full
 					int len = k+1;
 					for(int i=0; i<pop; i++) {	
-	 					 asort.sort(arc[anum[i]], F[i], Xn[i], len);
+	 					 asort.sort(arc[anum[i]], F[i], Xn[i], len, dim);
 					}
 				}
 	        	
@@ -288,16 +275,25 @@ public class MVMOmain {
 					F1[i] = arc[i].fitness[0];
 				}
 				anum=Isort.Ind(F1);		// new sorted number
-				
 				Frec[k][l]=F1[anum[0]];
-				X1rec[k][l]=arc[anum[0]].variable[0][0];
-				X2rec[k][l]=arc[anum[0]].variable[0][1];
 				
+				double [][] X1 = new double [1][dim];
+				double [][] X2 = new double [1][dim];
+				for(int j=0; j<dim; j++){
+					X1[0][j] = arc[anum[0]].variable[0][j];
+				}
+				X2 = norm.DeNormalize(X1, xylim);	// De-Normalization of the variables
+				for(int j=0; j<dim; j++){
+					X1rec[k][j][l]=X2[0][j];
+				}
+					
+				/*
 				System.out.printf("Iteration number:\t");
 				System.out.printf("%d-",k+1);
 				System.out.println(l+1);
 				System.out.printf("The best fitness:\t");
 				System.out.println(F1[anum[0]]);
+				*/
 			}
 		}		
 		        
@@ -306,11 +302,19 @@ public class MVMOmain {
 		String pathname = "C:\\result\\MVMO\\";
 		String sufi= ".csv";
 		String fnameF = "Fitness";
-		String fnameX1 = "x";
-		String fnameX2 = "y";
+		
 		WriteResult.Output(Frec, ite, trial, pathname + fnameF + sufi);
-		WriteResult.Output(X1rec, ite, trial, pathname + fnameX1 + sufi);
-		WriteResult.Output(X2rec, ite, trial, pathname + fnameX2 + sufi);
+		
+		double[][] Xrec = new double [ite][dim];
+		for(int m=0; m<trial; m++){
+			for(int i=0; i<ite; i++){
+				for(int j=0; j<dim; j++){
+					Xrec[i][j]=X1rec[i][j][m];
+				}
+			}
+			String fnameX1 = "x" + (m+1);
+			WriteResult.Output(Xrec, ite, dim, pathname + fnameX1 + sufi);
+		}
 		
 		System.out.println(pathname + "test" + sufi); 
 		
