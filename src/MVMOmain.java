@@ -15,8 +15,11 @@ public class MVMOmain {
 		// 4:Simionescu function, f(+-0.84852813,-+0.84852813)=-0.072
 		// 5:Rastrigin function, f(0, ..., 0)=0
 		// 6:Rosenbrock function, f(1, ..., 1)=0
+		// 7:Styblinski-Tang function, f(-2.903534, ..., -2.903534)=-39.16599*dim
+		// 8:Ackley function, f(0, ..., 0)=0
+		// 9:Levy function, f(1, ..., 1)=0
 			
-		int fnum=6;			// the function number to solve
+		int fnum=9;			// the function number to solve
 		int dim=2;			// the number of dimension of the decision variable
 		int trial=5;		// the number of trials with different random initial
 		int ite=1000;		// the number of iterations for a trial
@@ -41,6 +44,9 @@ public class MVMOmain {
 		ObjFunc.FuncName(fnum);
 		
 		// Answer check
+		double[] XX = {1, 1};
+		double ans=ObjFunc.EvalFunc(XX, fnum, dim);
+		System.out.printf("%f\n",ans);
 		
 		/////////////////////////////////////////////////
 		// Individual Generation & Initial Evaluation  //
