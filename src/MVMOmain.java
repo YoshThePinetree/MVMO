@@ -14,9 +14,10 @@ public class MVMOmain {
 		// 3:Mishra's Bird function - constrained, f(-3.1302468,-1.5821422)=-106.7645367
 		// 4:Simionescu function, f(+-0.84852813,-+0.84852813)=-0.072
 		// 5:Rastrigin function, f(0, ..., 0)=0
+		// 6:Rosenbrock function, f(1, ..., 1)=0
 			
-		int fnum=5;			// the function number to solve
-		int dim=5;			// the number of dimension of the decision variable
+		int fnum=6;			// the function number to solve
+		int dim=2;			// the number of dimension of the decision variable
 		int trial=5;		// the number of trials with different random initial
 		int ite=1000;		// the number of iterations for a trial
 		int pop=100;		// the number of particles
@@ -38,6 +39,8 @@ public class MVMOmain {
 		
 		System.out.printf("Function:\n");
 		ObjFunc.FuncName(fnum);
+		
+		// Answer check
 		
 		/////////////////////////////////////////////////
 		// Individual Generation & Initial Evaluation  //

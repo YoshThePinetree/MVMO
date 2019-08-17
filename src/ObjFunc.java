@@ -99,7 +99,7 @@ public class ObjFunc {
 			}
 			break;
 			
-		case 5:		// 2-D Rastrigin function
+		case 5:		// Rastrigin function
 			int A=10;
 			f = A*d;
 			
@@ -111,6 +111,12 @@ public class ObjFunc {
 					x[i] = 5.12;
 				}
 				f = f + (x[i]*x[i] - A*Math.cos(2*Math.PI*x[i]));
+			}
+			break;
+		
+		case 6:		// Rosenbrock function
+			for(int i=0; i<d-1; i++){ // round in the ranges and fitness calculation
+				f = f + (100*Math.pow(x[i+1] - (x[i]*x[i]),2)) + Math.pow(1 - x[i]*x[i],2); 
 			}
 		}
 		return f;
@@ -132,8 +138,12 @@ public class ObjFunc {
 			System.out.println("Simionescu function");
 			break;
 		case 5:
-			System.out.println("2-D Rastrigin function");
+			System.out.println("Rastrigin function");
 			break;
+		case 6:
+			System.out.println("Rosenbrock function");
+			break;
+
 		default :
 			System.out.println("Error");
 			break;
@@ -180,6 +190,18 @@ public class ObjFunc {
 						xylim[i][j] = -5.12;					
 					}else {
 						xylim[i][j] = 5.12;
+					}
+				}
+			}
+			
+			break;
+		case 6:
+			for(int i=0; i<2; i++){
+				for(int j=0; j<d; j++){
+					if(i == 0) {
+						xylim[i][j] = -10;					
+					}else {
+						xylim[i][j] = 10;
 					}
 				}
 			}
